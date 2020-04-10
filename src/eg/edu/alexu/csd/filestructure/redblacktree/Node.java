@@ -9,11 +9,7 @@ public class Node <T extends Comparable<T>, V> implements INode {
     private T key ;
     private V value ;
     private boolean color ;
-    Node (boolean color ){
 
-        this.color=color;
-
-    }
 
 
 
