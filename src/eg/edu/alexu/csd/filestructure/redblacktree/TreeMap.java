@@ -1,160 +1,258 @@
 package eg.edu.alexu.csd.filestructure.redblacktree;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
-public class TreeMap<T extends Comparable<T>, V> implements ITreeMap<T, V> {
-	
-	private IRedBlackTree<T, V> RedBlackTree = new RedBlackTree<>();
-    private int size = 0;
+import javax.management.RuntimeErrorException;
 
-	@Override
-	public Entry<T, V> ceilingEntry(T key) {
-		if (key == null) 
-			throw new NullPointerException();
-		return null;
+public class TreeMap <T extends Comparable<T>, V> implements ITreeMap<T, V>{
+RedBlackTree<T,V> RBTree =new RedBlackTree<>();
+
+    @Override
+    public Entry<T, V> ceilingEntry(T key) {
+        if (key == null)
+            throw new RuntimeErrorException(null);
+        Set<Map.Entry<T, V>> result=new LinkedHashSet<Map.Entry<T, V>>();
+        inorderTraversal(RBTree.getRoot(),result);
+        Iterator<Map.Entry<T, V>> it = entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<T, V> entry = it.next();
+            if (entry.getKey().compareTo(key) > 0 || entry.getKey().compareTo(key) == 0) {
+                return entry;
+            }
+        }
+        return null;
         
-	}
 
-	@Override
-	public T ceilingKey(T key) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    }
 
-	@Override
-	public void clear() {
-		RedBlackTree.clear();
-        size = 0;
-	}
 
-	@Override
-	public boolean containsKey(T key) {
-		 return RedBlackTree.contains(key);
-	}
+    private void inorderTraversal(INode<T,V> root, Set<Map.Entry<T, V>> result)
+    {
+        if (root.isNull())
+            return;
+        inorderTraversal(root.getLeftChild(), result);
+        result.add(new AbstractMap.SimpleEntry<T,V>(root.getKey(), root.getValue()) );
+        inorderTraversal(root.getRightChild(), result);
+    }
 
-	@Override
-	public boolean containsValue(V value) {
-		if (value == null) 
-			throw new NullPointerException();
-        for (V v : values())
-            if (v.equals(value))
+    @Override
+    public T ceilingKey(T key) {
+        if (key == null) {
+            throw new RuntimeErrorException(null);
+        }
+        Map.Entry<T, V> entry = ceilingEntry(key);
+        return (T) entry.getKey();
+    }
+
+    @Override
+    public void clear() {
+        RBTree.clear();
+
+    }
+
+    @Override
+    public boolean containsKey(T key) {
+        if (key == null)
+            throw new RuntimeErrorException(null);
+       return RBTree.contains(key);
+    }
+
+    @Override
+    public boolean containsValue(V value) {
+        if (value == null)
+            throw new RuntimeErrorException(null);
+        Set<Map.Entry<T, V>> result=new LinkedHashSet<Map.Entry<T, V>>();
+        inorderTraversal(RBTree.getRoot(),result);
+        Iterator<Map.Entry<T, V>> it = entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<T, V> entry = it.next();
+            if (entry.getValue().equals(value)    ) {
                 return true;
+            }
+        }
         return false;
-	}
+    }
 
-	@Override
-	public Set<Entry<T, V>> entrySet() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public Set<Entry<T, V>> entrySet() {
+        Set<Map.Entry<T, V>> result= new LinkedHashSet<Map.Entry<T, V>>();
+        inorderTraversal(RBTree.getRoot(),result);
 
-	@Override
-	public Entry<T, V> firstEntry() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+        return result;
+    }
 
-	@Override
-	public T firstKey() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public Entry<T, V> firstEntry() {
+      if (RBTree.isEmpty())
+        return null;
+        Iterator<Map.Entry<T, V>> it = entrySet().iterator();
+        return it.next();
 
-	@Override
-	public Entry<T, V> floorEntry(T key) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    }
 
-	@Override
-	public T floorKey(T key) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public T firstKey() {
+        if (RBTree.isEmpty())
+            return null;
+        Map.Entry<T,V> entry=firstEntry();
+        return entry.getKey();
+    }
 
-	@Override
-	public V get(T key) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public Entry<T, V> floorEntry(T key) {
+        if (key == null) {
+            throw new RuntimeErrorException(null);
+        }
+        if (RBTree.isEmpty())
+        return null;
+        Set<Map.Entry<T, V>> result=new LinkedHashSet<Map.Entry<T, V>>();
+        inorderTraversal(RBTree.getRoot(),result);
+        Map.Entry<T, V> entry=null;
+        Iterator<Map.Entry<T, V>> it = entrySet().iterator();
+        Iterator<Map.Entry<T, V>> t=it;
+        while (t.hasNext()) {
+            entry = t.next();
+            it=t;
+            if (it.hasNext()) {
+                if ((entry.getKey().compareTo(key) < 0 || entry.getKey().compareTo(key) == 0) && it.next().getKey().compareTo(key) > 0)
+                    return entry;
 
-	@Override
-	public ArrayList<Entry<T, V>> headMap(T toKey) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+            }
+            if (!it.hasNext()) break;
 
-	@Override
-	public ArrayList<Entry<T, V>> headMap(T toKey, boolean inclusive) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
-	@Override
-	public Set<T> keySet() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+        }
+        return entry;
+    }
 
-	@Override
-	public Entry<T, V> lastEntry() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public T floorKey(T key) {
+        if (key == null)
+            throw new RuntimeErrorException(null);
+        if (RBTree.isEmpty())
+            return null;
+        Map.Entry<T, V> entry=floorEntry(key);
+        return (T) entry.getKey();
 
-	@Override
-	public T lastKey() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    }
 
-	@Override
-	public Entry<T, V> pollFirstEntry() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public V get(T key) {
+        if (key == null)
+            throw new RuntimeErrorException(null);
+        if (RBTree.isEmpty())
+            return null;
+        INode<T,V> n=RBTree.find(key);
+        return n.getValue();
 
-	@Override
-	public Entry<T, V> pollLastEntry() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    }
 
-	@Override
-	public void put(T key, V value) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public ArrayList<Entry<T, V>> headMap(T toKey) {
+        if (toKey == null)
+            throw new RuntimeErrorException(null);
+        ArrayList<Entry<T,V>> arr=new ArrayList<>();
+        Set<Map.Entry<T, V>> result=new LinkedHashSet<Map.Entry<T, V>>();
+        inorderTraversal(RBTree.getRoot(),result);
+        Iterator<Map.Entry<T, V>> it = entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<T, V> entry = it.next();
+            if (entry.getKey().compareTo(toKey) < 0 ) {
+                arr.add(entry);
+            }
+        }
+        return arr;
+    }
 
-	@Override
-	public void putAll(Map<T, V> map) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public ArrayList<Entry<T, V>> headMap(T toKey, boolean inclusive) {
+        if (toKey == null)
+            throw new RuntimeErrorException(null);
+        ArrayList<Entry<T,V>> arr=new ArrayList<>();
+        Set<Map.Entry<T, V>> result=new LinkedHashSet<Map.Entry<T, V>>();
+        inorderTraversal(RBTree.getRoot(),result);
+        Iterator<Map.Entry<T, V>> it = entrySet().iterator();
+        if (inclusive==true){
+            while (it.hasNext()) {
+                Map.Entry<T, V> entry = it.next();
+                if (entry.getKey().compareTo(toKey) <= 0 ) {
+                    arr.add(entry);
+                }
+            }
 
-	@Override
-	public boolean remove(T key) {
-		if (key == null) 
-			throw new NullPointerException();
-        boolean deleted = RedBlackTree.delete(key);
-        if (deleted) 
-        	size--;
-        return deleted;
-	}
+        }
+        else
+        { while (it.hasNext()) {
+            Map.Entry<T, V> entry = it.next();
+            if (entry.getKey().compareTo(toKey) < 0 ) {
+                arr.add(entry);
+            }
+        }
 
-	@Override
-	public int size() {
-		return size;
-	}
+        }
+        return arr;
+    }
 
-	@Override
-	public Collection<V> values() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public Set<T> keySet() {
+        return null;
+    }
 
+    @Override
+    public Entry<T, V> lastEntry() {
+        return null;
+    }
+
+    @Override
+    public T lastKey() {
+        return null;
+    }
+
+    @Override
+    public Entry<T, V> pollFirstEntry() {
+        return null;
+    }
+
+    @Override
+    public Entry<T, V> pollLastEntry() {
+        return null;
+    }
+
+    @Override
+    public void put(T key, V value) {
+        if (key == null || value == null) {
+            throw new RuntimeErrorException(null);
+        }
+
+       /* if (!RBTree.contains(key)) {
+            size++;
+        }
+
+        */
+
+
+        RBTree.insert(key, value);
+
+    }
+
+    @Override
+    public void putAll(Map<T, V> map) {
+
+    }
+
+    @Override
+    public boolean remove(T key) {
+        return false;
+    }
+
+    @Override
+    public int size() {
+        return 0;
+    }
+
+    @Override
+    public Collection<V> values() {
+        return null;
+    }
 }
