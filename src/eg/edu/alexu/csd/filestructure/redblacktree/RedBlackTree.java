@@ -177,7 +177,7 @@ public class RedBlackTree<T extends Comparable<T>, V> implements IRedBlackTree<T
             throw new RuntimeErrorException(null);
         }
         INode<T, V> node = root;
-        while (node != null && node != nil) {
+        while ( node != nil) {
             if (node.getKey().compareTo((T) key) == 0) {
                 return node;
             }
@@ -198,16 +198,21 @@ public class RedBlackTree<T extends Comparable<T>, V> implements IRedBlackTree<T
         if (key == null)
             throw new RuntimeErrorException(null);
         INode<T, V> z = find(key);
-        if (z.isNull())  return false;
+        if (z.getKey()==null)  return false;
         INode y = z, x;
         boolean yOrigin = y.getColor();
+        int flag=0;
         if (z.getLeftChild().isNull()) {
             x = z.getRightChild();
             transplant(z, z.getRightChild());
-        } else if (z.getRightChild().isNull()) {
+            flag=0;
+        } //System.out.println(z==nil);
+         else if (z.getRightChild()==nil) {
             x = z.getLeftChild();
             transplant(z, z.getLeftChild());
+            flag=0;
         } else {
+            flag=1;
             y = minChild(z.getRightChild());
             yOrigin = y.getColor();
             x = y.getRightChild();
@@ -223,8 +228,10 @@ public class RedBlackTree<T extends Comparable<T>, V> implements IRedBlackTree<T
             y.getLeftChild().setParent(y);
             y.setColor(z.getColor());
         }
-        if (yOrigin == black)
-            deleteFixup(x);
+        if (yOrigin == black&&x!=nil&&x!=null) {
+            if (flag==0) deleteFixup(x, z.getParent());
+            else  deleteFixup(x, y.getParent());
+        }
         return true; }
 
     private INode<T, V> successor(INode<T, V> x) {
@@ -248,7 +255,7 @@ public class RedBlackTree<T extends Comparable<T>, V> implements IRedBlackTree<T
         //if (x==nil||x==null) return nil;
         INode<T, V> y = new Node<>();
         y = x;
-        while (!y.getLeftChild().isNull() ) {
+        while (y.getLeftChild()!=null ) {
             // System.out.println("1");
             y = y.getLeftChild();
         }
@@ -258,79 +265,86 @@ public class RedBlackTree<T extends Comparable<T>, V> implements IRedBlackTree<T
 
 
     private void transplant(INode<T, V> u, INode<T, V> v) {
+
         if (u.getParent() == nil) {
             root = v;
-        } else if (u == u.getParent().getLeftChild()) {
+
+        } else if (u!=nil&&u == u.getParent().getLeftChild()) {
             u.getParent().setLeftChild(v);
-        } else {
+        } else if (u!=nil) {
             u.getParent().setRightChild(v);
         }
+     if(v!=nil&&u!=nil)
+
         v.setParent(u.getParent());
+
     }
 
 
-    private void deleteFixup(INode<T, V> x) {
+    private void deleteFixup(INode<T, V> x,INode<T, V>  xParent) {
         while (x != root && x.getColor() == black) {
             INode w;
-            if (x == x.getParent().getLeftChild()) {
-                w = x.getParent().getRightChild();
-                if (w != nil) {
-                    if (w.getColor() == red) {
-                        w.setColor(black);
-                        x.getParent().setColor(red);
-                        LeftRotate(x.getParent());
-                        w = x.getParent().getRightChild();
-                    }
-                    if (w.getLeftChild().getColor() == black && w.getRightChild().getColor() == black) {
-                        w.setColor(red);
-                        x = x.getParent();
-                        //continue;
-                    } else if (w.getRightChild().getColor() == black) {
-                        w.getLeftChild().setColor(black);
-                        w.setColor(red);
-                        RightRotate(w);
-                        w = x.getParent().getRightChild();
-                    }
-                    if (w.getRightChild().getColor() == INode.RED) {
-                        w.setColor(x.getParent().getColor());
-                        x.getParent().setColor(black);
-                        w.getRightChild().setColor(black);
-                        LeftRotate(x.getParent());
-                        x = getRoot();
+                if (x == xParent.getLeftChild()) {
+                    w = xParent.getRightChild();
+                    if (w != nil) {
+                        if (w.getColor() == red) {
+                            w.setColor(black);
+                            xParent.setColor(red);
+                            LeftRotate(xParent);
+                            w = xParent.getRightChild();
+                        }
+                        if (w.getLeftChild().getColor() == black && w.getRightChild().getColor() == black) {
+                            w.setColor(red);
+                            x = xParent;
+                            //continue;
+                        } else if (w.getRightChild().getColor() == black) {
+                            w.getLeftChild().setColor(black);
+                            w.setColor(red);
+                            RightRotate(w);
+                            w = xParent.getRightChild();
+                        }
+                        if (w.getRightChild().getColor() == INode.RED) {
+                            w.setColor(xParent.getColor());
+                            xParent.setColor(black);
+                            w.getRightChild().setColor(black);
+                            LeftRotate(xParent);
+                            x = getRoot();
+
+                        }
 
                     }
+                } else {
 
+                    w = xParent.getLeftChild();
+                    if (w != nil) {
+
+                        if (w.getColor() == red) {
+                            w.setColor(black);
+                            xParent.setColor(red);
+                            LeftRotate(xParent);
+                            w =xParent.getLeftChild();
+                        }
+                        if (w.getRightChild().getColor() == black && w.getLeftChild().getColor() == black) {
+                            w.setColor(red);
+                            x = xParent;
+                            //continue;
+                        } else if (w.getLeftChild().getColor() == black) {
+                            w.getLeftChild().setColor(black);
+                            w.setColor(red);
+                            LeftRotate(w);
+                            w = xParent.getLeftChild();
+                        }
+                        if (w.getLeftChild().getColor() == INode.RED) {
+                            w.setColor(xParent.getColor());
+                            x.getParent().setColor(black);
+                            w.getLeftChild().setColor(black);
+                            RightRotate(xParent);
+                            x = getRoot();
+                        }
+
+                    }
                 }
-            } else {
-                w = x.getParent().getLeftChild();
-                if (w != nil) {
 
-                    if (w.getColor() == red) {
-                        w.setColor(black);
-                        x.getParent().setColor(red);
-                        LeftRotate(x.getParent());
-                        w = x.getParent().getLeftChild();
-                    }
-                    if (w!=nil&&w.getRightChild().getColor() == black && w.getLeftChild().getColor() == black) {
-                        w.setColor(red);
-                        x = x.getParent();
-                        //continue;
-                    } else if (w.getLeftChild().getColor() == black) {
-                        w.getLeftChild().setColor(black);
-                        w.setColor(red);
-                        LeftRotate(w);
-                        w = x.getParent().getLeftChild();
-                    }
-                    if (w.getLeftChild().getColor() == INode.RED) {
-                        w.setColor(x.getParent().getColor());
-                        x.getParent().setColor(black);
-                        w.getLeftChild().setColor(black);
-                        RightRotate(x.getParent());
-                        x = getRoot();
-                    }
-
-                }
-            }
         }
         x.setColor(black);
     }
